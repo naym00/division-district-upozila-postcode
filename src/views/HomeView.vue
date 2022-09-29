@@ -1,78 +1,31 @@
 <template>
   <v-container fluid>
-    <v-row align="center">
-      <v-col class="d-flex" cols="12" sm="6">
-        <v-select v-model="selectedDivisionID" item-value="id" :items="divisionsToDisplay" item-text="bn_name" filled label="Select Division">
-          <template v-slot:prepend>
-            <v-btn @click="cleardata(1)">
-              <v-icon>mdi-window-close</v-icon>
-            </v-btn>
-          </template>
-        </v-select>
-      </v-col>
 
-      <v-col class="d-flex" cols="12" sm="6">
-        <v-select v-model="selectedDistrictID" item-value="id" :items="districtsToDisplay" item-text="bn_name" label="Select District">
-          <template v-slot:prepend>
-            <v-btn @click="cleardata(2)">
-              <v-icon>mdi-window-close</v-icon>
-            </v-btn>
-          </template>
-        </v-select>
+    <v-row>
+      <v-col class="d-flex" lg="3" md="3" sm="6">
+        <v-select clearable v-model="selectedDivisionID" item-value="id" :items="display.divisions" item-text="bn_name" filled label="Select Division"></v-select>
       </v-col>
-
-      <v-col class="d-flex" cols="12" sm="6">
-        <v-select v-model="selectedUpazilaName" item-value="name" :items="UpazilasToDisplay" item-text="bn_name" label="Select Upazila">
-          <template v-slot:prepend>
-            <v-btn @click="cleardata(3)">
-              <v-icon>mdi-window-close</v-icon>
-            </v-btn>
-          </template>
-        </v-select>
+      <v-col class="d-flex" lg="3" md="3" sm="6">
+        <v-select clearable v-model="selectedDistrictID" item-value="id" :items="display.districts" item-text="bn_name" label="Select District"></v-select>
       </v-col>
-
-      <v-col class="d-flex" cols="12" sm="6">
-        <v-select :items="PostcodesToDisplay" item-text="postCode" label="Select Postcode" solo>
-          <template v-slot:prepend>
-            <v-btn @click="cleardata(4)">
-              <v-icon>mdi-window-close</v-icon>
-            </v-btn>
-          </template>
-        </v-select>
+      <v-col class="d-flex" lg="3" md="3" sm="6">
+        <v-select clearable v-model="selectedUpazilaName" item-value="name" :items="display.upazilas" item-text="bn_name" label="Select Upazila"></v-select>
+      </v-col>
+      <v-col class="d-flex" lg="3" md="3" sm="6">
+        <v-select clearable v-model="selectedPostcodes" item-value="postCode" :items="display.postcodes" item-text="postCode" label="Select Postcode"></v-select>
       </v-col>
     </v-row>
 
-    <v-row v-if="districtsToDisplay.length">
-      <template>
-        <v-data-table
-          :headers="[{text: 'District(Bangla)', align: 'start', value: 'bn_name'}, {text: 'District(English)', value: 'name'}]"
-          :items="districtsToDisplay.map(district => ({bn_name: district.bn_name, name: district.name}))"
-          :items-per-page="5"
-          class="elevation-1"
-        ></v-data-table>
-      </template>
-    </v-row>
-
-    <v-row v-if="districtsToDisplay.length && UpazilasToDisplay.length">
-      <template>
-        <v-data-table
-          :headers="[{text: 'Upazila(Bangla)', align: 'start', value: 'bn_name'}, {text: 'Upazila(English)', value: 'name'}]"
-          :items="UpazilasToDisplay.map(upazila => ({bn_name: upazila.bn_name, name: upazila.name}))"
-          :items-per-page="5"
-          class="elevation-1"
-        ></v-data-table>
-      </template>
-    </v-row>
-
-    <v-row v-if="districtsToDisplay.length && UpazilasToDisplay.length && PostcodesToDisplay.length">
-      <template>
-        <v-data-table
-          :headers="[{text: 'Upazila', align: 'start', value: 'upazila'}, {text: 'Post Office', value: 'postOffice'}, {text: 'Post Code', value: 'postCode'}]"
-          :items="PostcodesToDisplay.map(postcode => ({upazila: postcode.upazila, postOffice: postcode.postOffice, postCode: postcode.postCode}))"
-          :items-per-page="5"
-          class="elevation-1"
-        ></v-data-table>
-      </template>
+    <v-row>
+      <v-col lg="6" md="6" sm="12" v-if="display.districts.length">
+        <data-table :headers="[{text: 'District(Bangla)', align: 'start', value: 'bn_name'}, {text: 'District(English)', value: 'name'}]" :items="display.districts.map(district => ({bn_name: district.bn_name, name: district.name}))"></data-table>
+      </v-col>
+      <v-col lg="6" md="6" sm="12" v-if="display.districts.length && display.upazilas.length">
+        <data-table :headers="[{text: 'Upazila(Bangla)', align: 'start', value: 'bn_name'}, {text: 'Upazila(English)', value: 'name'}]" :items="display.upazilas.map(upazila => ({bn_name: upazila.bn_name, name: upazila.name}))"></data-table>
+      </v-col>
+      <v-col lg="12" md="12" sm="12" v-if="display.districts.length && display.upazilas.length && display.postcodes.length">
+        <data-table :headers="[{text: 'Upazila', align: 'start', value: 'upazila'}, {text: 'Post Office', value: 'postOffice'}, {text: 'Post Code', value: 'postCode'}]" :items="display.postcodes.map(postcode => ({upazila: postcode.upazila, postOffice: postcode.postOffice, postCode: postcode.postCode}))"></data-table>
+      </v-col>
     </v-row>
 
   </v-container>
@@ -80,6 +33,8 @@
 
 
 <script>
+  import TableComponent from '@/components/TableComponent.vue'
+
   import bdDivisions from '@/assets/json/bangladesh-geojson-master/bd-divisions.json'
   import bdDistricts from '@/assets/json/bangladesh-geojson-master/bd-districts.json'
   import bdUpazilas from '@/assets/json/bangladesh-geojson-master/bd-upazilas.json'
@@ -87,65 +42,49 @@
 
   export default {
     name: 'HomeView',
+    components: {
+      'data-table': TableComponent
+    },
     data: () => ({
       bdDivisions: JSON.parse(JSON.stringify(bdDivisions)),
       selectedDivisionID: '',
-      divisionsToDisplay: [],
-
       bdDistricts: JSON.parse(JSON.stringify(bdDistricts)),
       selectedDistrictID: '',
-      districtsToDisplay: [],
-
       bdUpazilas: JSON.parse(JSON.stringify(bdUpazilas)),
       selectedUpazilaName: '',
-      UpazilasToDisplay: [],
-
       bdPostcodes: JSON.parse(JSON.stringify(bdPostcodes)),
-      PostcodesToDisplay: [],
+      selectedPostcodes: '',
+      display: {divisions: [], districts: [], upazilas: [], postcodes: []}
     }),
     watch: {
       selectedDivisionID: function(){
-        this.districtsToDisplay = this.getData(this.bdDistricts, 'districts', 'division_id', this.selectedDivisionID)
+        if(this.selectedDivisionID == null){
+          this.display.districts = []
+          this.selectedDistrictID = null
+        }
+        else{this.prepareDataToDisplay(this.display, 'districts', this.bdDistricts, 'districts', 'division_id', this.selectedDivisionID)}
       },
       selectedDistrictID: function(){
-        this.UpazilasToDisplay = this.getData(this.bdUpazilas, 'upazilas', 'district_id', this.selectedDistrictID)
+        if(this.selectedDistrictID == null){
+          this.display.upazilas = []
+          this.selectedUpazilaName = null
+        }
+        else{this.prepareDataToDisplay(this.display, 'upazilas', this.bdUpazilas, 'upazilas', 'district_id', this.selectedDistrictID)}
       },
       selectedUpazilaName: function(){
-        this.PostcodesToDisplay = this.getData(this.bdPostcodes, 'postcodes', 'upazila', this.selectedUpazilaName)
+        if(this.selectedUpazilaName == null){
+          this.display.postcodes = []
+        }
+        else{this.prepareDataToDisplay(this.display, 'postcodes', this.bdPostcodes, 'postcodes', 'upazila', this.selectedUpazilaName)}
       }
     },
     mounted(){
-      this.getDivisions()
+      this.prepareDataToDisplay(this.display, 'divisions', this.bdDivisions, 'divisions')
     },
     methods: {
-
-      getDivisions(){
-        this.divisionsToDisplay = this.bdDivisions.divisions
-      },
-
-      getData(object, nextStpe, comparewith, comparevalue){
-        return object[nextStpe].filter(data => data[comparewith] == comparevalue)
-      },
-      cleardata(numericalvalue){
-        if(numericalvalue == 1){
-          // this.divisionsToDisplay = []
-          this.districtsToDisplay = []
-          this.UpazilasToDisplay = []
-          this.PostcodesToDisplay = []
-        }
-        else if(numericalvalue == 2){
-          // this.districtsToDisplay = []
-          this.UpazilasToDisplay = []
-          this.PostcodesToDisplay = []
-        }
-        else if(numericalvalue == 3){
-          // this.UpazilasToDisplay = []
-          this.PostcodesToDisplay = []
-        }
-        // else{
-        //   this.PostcodesToDisplay = []
-        // }
-
+      prepareDataToDisplay(receiver, receiverKey, filterObject, filterObjectKey, comparewith = '', comparevalue = ''){
+        if(!(comparewith && comparevalue)){receiver[receiverKey] =  filterObject[filterObjectKey]}
+        else{receiver[receiverKey] =  filterObject[filterObjectKey].filter(data => data[comparewith] == comparevalue)}
       }
     }
   }
